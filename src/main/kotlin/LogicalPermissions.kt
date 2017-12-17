@@ -22,8 +22,8 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         if(this.corePermissionKeys.contains(name.toUpperCase())) {
             throw IllegalArgumentException("The \"name\" parameter has the illegal value \"${name}\". It cannot be one of the following values: ${this.corePermissionKeys}")
         }
-        if(this.types.containsKey(name)) {
-            throw PermissionTypeAlreadyExistsException("The permission type \"${name}\" already exists! If you want to change the callback for an existing type, please use LogicalPermissions::SetTypeCallback().")
+        if(this.typeExists(name)) {
+            throw PermissionTypeAlreadyExistsException("The permission type \"${name}\" already exists! If you want to change the callback for an existing type, please use LogicalPermissions::setTypeCallback().")
         }
 
         val types = this.types.toMutableMap()
@@ -34,6 +34,9 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     open fun removeType(name: String) {
         if(name == "") {
             throw IllegalArgumentException("The \"name\" parameter cannot be empty.")
+        }
+        if(!this.typeExists(name)) {
+            throw PermissionTypeNotRegisteredException("The permission type \"name\" has not been registered. Please use LogicalPermissions::addType() or LogicalPermissions::setTypes() to register permission types.")
         }
 
         val types = this.types.toMutableMap()

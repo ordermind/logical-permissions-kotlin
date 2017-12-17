@@ -42,4 +42,18 @@ class LogicalPermissionsTest {
         lp.removeType("")
     }
 
+    @Test(expected = PermissionTypeNotRegisteredException::class) fun testRemoveTypeUnregisteredType() {
+        val lp = LogicalPermissions()
+        lp.removeType("test")
+    }
+
+    @Test fun testRemoveType() {
+        val lp = LogicalPermissions()
+        val type_callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", type_callback)
+        Assert.assertTrue(lp.typeExists("test"))
+        lp.removeType("test")
+        Assert.assertFalse(lp.typeExists("test"))
+    }
+
 }
