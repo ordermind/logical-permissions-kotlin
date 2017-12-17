@@ -1,0 +1,1 @@
+class PermissionTypeAlreadyExistsException(message: String): IllegalArgumentException(message)
