@@ -37,7 +37,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             throw IllegalArgumentException("The \"name\" parameter cannot be empty.")
         }
         if(!this.typeExists(name)) {
-            throw PermissionTypeNotRegisteredException("The permission type \"${name}\" has not been registered. Please use LogicalPermissions::addType() or LogicalPermissions::setTypes() to register permission types.")
+            throw PermissionTypeNotRegisteredException("The permission type \"${name}\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
         }
 
         val types = this.types.toMutableMap()
@@ -57,12 +57,12 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         if(name.isEmpty()) {
             throw IllegalArgumentException("The \"name\" parameter cannot be empty.")
         }
-        
+
         val callback = this.types[name]
         if(callback == null) {
-            throw PermissionTypeNotRegisteredException("The permission type \"${name}\" has not been registered. Please use LogicalPermissions::addType() or LogicalPermissions::setTypes() to register permission types.") 
+            throw PermissionTypeNotRegisteredException("The permission type \"${name}\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
         }
-        
+
         return callback
     }
 
@@ -71,11 +71,12 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             throw IllegalArgumentException("The \"name\" parameter cannot be empty.")
         }
         if(!this.typeExists(name)) {
-            throw PermissionTypeNotRegisteredException("The permission type \"${name}\" has not been registered. Please use LogicalPermissions::addType() or LogicalPermissions::setTypes() to register permission types.")
+            throw PermissionTypeNotRegisteredException("The permission type \"${name}\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
         }
 
         val types = this.types.toMutableMap()
         types[name] = callback
         this.types = types.toMap()
     }
+
 }

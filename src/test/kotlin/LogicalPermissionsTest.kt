@@ -115,4 +115,35 @@ class LogicalPermissionsTest {
         val callback3 = lp.getTypeCallback("test")
         Assert.assertSame(callback1, callback3)
     }
+
+    /*-------------LogicalPermissions::types--------------*/
+
+    @Test fun testGetTypes() {
+        val lp = LogicalPermissions()
+        // Assert empty map
+        Assert.assertEquals(lp.types, mapOf<String, (String, Map<String, Any>) -> Boolean>())
+
+        val type_callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", type_callback)
+        Assert.assertEquals(lp.types, mapOf("test" to type_callback))
+    }
+
+    @Test(expected = IllegalArgumentException::class) fun testSetTypesParamNameEmpty() {
+        val lp = LogicalPermissions()
+        val types = mapOf("" to {_: String, _: Map<String, Any> -> true})
+        lp.types = types
+    }
+
+    @Test(expected = IllegalArgumentException::class) fun testSetTypesParamTypesNameIsCoreKey() {
+        val lp = LogicalPermissions()
+        val types = mapOf("and" to {_: String, _: Map<String, Any> -> true})
+        lp.types = types
+    }
+
+    @Test fun testSetTypes() {
+        val lp = LogicalPermissions()
+        val types = mapOf("test" to {_: String, _: Map<String, Any> -> true})
+        lp.types = types
+        Assert.assertEquals(lp.types, types)
+    }
 }
