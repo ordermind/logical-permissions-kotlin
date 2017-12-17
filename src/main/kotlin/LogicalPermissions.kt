@@ -13,9 +13,10 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
             field = value
         }
+
     open var bypassCallback: ((Map<String, Any>) -> Boolean)? = null
 
-    open protected val corePermissionKeys: List<String> = listOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE")
+    open protected val corePermissionKeys: Set<String> = setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE")
 
     open fun addType(name: String, callback: (String, Map<String, Any>) -> Boolean) {
         if(name.isEmpty()) {
@@ -78,6 +79,10 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         val types = this.types.toMutableMap()
         types[name] = callback
         this.types = types.toMap()
+    }
+
+    open fun getValidPermissionKeys(): Set<String> {
+        return this.corePermissionKeys.union(this.types.keys)
     }
 
 }
