@@ -32,6 +32,10 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open fun removeType(name: String) {
+        if(name == "") {
+            throw IllegalArgumentException("The \"name\" parameter cannot be empty.")
+        }
+
         val types = this.types.toMutableMap()
         types.remove(name)
         this.types = types.toMap()
