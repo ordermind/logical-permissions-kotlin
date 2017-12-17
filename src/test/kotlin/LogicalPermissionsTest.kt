@@ -69,4 +69,24 @@ class LogicalPermissionsTest {
         lp.addType("test", type_callback)
         Assert.assertTrue(lp.typeExists("test"))
     }
+
+    /*-------------LogicalPermissions::GetTypeCallback()--------------*/
+
+    @Test(expected = IllegalArgumentException::class) fun testGetTypeCallbackParamNameEmpty() {
+        val lp = LogicalPermissions()
+        lp.getTypeCallback("")
+    }
+
+    @Test(expected = PermissionTypeNotRegisteredException::class) fun testGetTypeCallbackUnregisteredType() {
+        val lp = LogicalPermissions()
+        lp.getTypeCallback("test")
+    }
+
+    @Test fun testGetTypeCallback() {
+        val lp = LogicalPermissions()
+        val callback1 = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", callback1)
+        val callback2 = lp.getTypeCallback("test")
+        Assert.assertSame(callback1, callback2)
+    }
 }
