@@ -89,4 +89,30 @@ class LogicalPermissionsTest {
         val callback2 = lp.getTypeCallback("test")
         Assert.assertSame(callback1, callback2)
     }
+
+    /*-------------LogicalPermissions::SetTypeCallback()--------------*/
+
+    @Test(expected = IllegalArgumentException::class) fun testSetTypeCallbackParamNameEmpty() {
+        val lp = LogicalPermissions()
+        val type_callback = {_: String, _: Map<String, Any> -> true}
+        lp.setTypeCallback("", type_callback)
+    }
+
+    @Test(expected = PermissionTypeNotRegisteredException::class) fun testSetTypeCallbackUnregisteredType() {
+        val lp = LogicalPermissions()
+        val type_callback = {_: String, _: Map<String, Any> -> true}
+        lp.setTypeCallback("test", type_callback)
+    }
+
+    @Test fun testSetTypeCallback() {
+        val lp = LogicalPermissions()
+        lp.addType("test", {_: String, _: Map<String, Any> -> true})
+        val callback1 = {_: String, _: Map<String, Any> -> true}
+        val callback2 = lp.getTypeCallback("test")
+        Assert.assertNotSame(callback1, callback2)
+
+        lp.setTypeCallback("test", callback1)
+        val callback3 = lp.getTypeCallback("test")
+        Assert.assertSame(callback1, callback3)
+    }
 }
