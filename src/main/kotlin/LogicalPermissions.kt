@@ -45,6 +45,10 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open fun typeExists(name: String): Boolean {
+        if(name == "") {
+            throw IllegalArgumentException("The \"name\" parameter cannot be empty.")
+        }
+
         return this.types.containsKey(name)
     }
 

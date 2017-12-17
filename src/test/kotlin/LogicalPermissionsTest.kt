@@ -56,4 +56,17 @@ class LogicalPermissionsTest {
         Assert.assertFalse(lp.typeExists("test"))
     }
 
+    /*-------------LogicalPermissions::TypeExists()--------------*/
+
+    @Test(expected = IllegalArgumentException::class) fun testTypeExistsParamNameEmpty() {
+        val lp = LogicalPermissions()
+        lp.typeExists("")
+    }
+
+    @Test fun testTypeExists() {
+        val lp = LogicalPermissions()
+        val type_callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", type_callback)
+        Assert.assertTrue(lp.typeExists("test"))
+    }
 }
