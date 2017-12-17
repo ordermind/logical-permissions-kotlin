@@ -13,6 +13,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
             field = value
         }
+    open var bypassCallback: ((Map<String, Any>) -> Boolean)? = null
 
     open protected val corePermissionKeys: List<String> = listOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE")
 

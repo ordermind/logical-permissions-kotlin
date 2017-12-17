@@ -146,4 +146,19 @@ class LogicalPermissionsTest {
         lp.types = types
         Assert.assertEquals(lp.types, types)
     }
+
+    /*-------------LogicalPermissions::GetBypassCallback()--------------*/
+
+    @Test fun getBypassCallback() {
+        val lp = LogicalPermissions()
+        Assert.assertNull(lp.bypassCallback)
+    }
+
+    @Test fun setBypassCallback() {
+        val lp = LogicalPermissions()
+        val bypass_callback = {_: Map<String, Any> -> true}
+        lp.bypassCallback = bypass_callback
+        Assert.assertNotNull(lp.bypassCallback)
+        Assert.assertEquals(lp.bypassCallback, bypass_callback)
+    }
 }
