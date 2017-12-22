@@ -1,10 +1,10 @@
-import org.junit.Assert
 import org.junit.Test
+import kotlin.test.*
 
 class LogicalPermissionsTest {
     @Test fun testCreation() {
         val lp = LogicalPermissions()
-        Assert.assertTrue(lp is LogicalPermissionsInterface)
+        assertTrue(lp is LogicalPermissionsInterface)
     }
 
     /*-----------LogicalPermissions::addType()-------------*/
@@ -32,7 +32,7 @@ class LogicalPermissionsTest {
         val lp = LogicalPermissions()
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.addType("test", type_callback)
-        Assert.assertTrue(lp.typeExists("test"))
+        assertTrue(lp.typeExists("test"))
     }
 
     /*-----------LogicalPermissions::removeType()-------------*/
@@ -51,9 +51,9 @@ class LogicalPermissionsTest {
         val lp = LogicalPermissions()
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.addType("test", type_callback)
-        Assert.assertTrue(lp.typeExists("test"))
+        assertTrue(lp.typeExists("test"))
         lp.removeType("test")
-        Assert.assertFalse(lp.typeExists("test"))
+        assertFalse(lp.typeExists("test"))
     }
 
     /*-------------LogicalPermissions::typeExists()--------------*/
@@ -67,7 +67,7 @@ class LogicalPermissionsTest {
         val lp = LogicalPermissions()
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.addType("test", type_callback)
-        Assert.assertTrue(lp.typeExists("test"))
+        assertTrue(lp.typeExists("test"))
     }
 
     /*-------------LogicalPermissions::getTypeCallback()--------------*/
@@ -87,7 +87,7 @@ class LogicalPermissionsTest {
         val callback1 = {_: String, _: Map<String, Any> -> true}
         lp.addType("test", callback1)
         val callback2 = lp.getTypeCallback("test")
-        Assert.assertSame(callback1, callback2)
+        assertSame(callback1, callback2)
     }
 
     /*-------------LogicalPermissions::setTypeCallback()--------------*/
@@ -109,11 +109,11 @@ class LogicalPermissionsTest {
         lp.addType("test", {_: String, _: Map<String, Any> -> true})
         val callback1 = {_: String, _: Map<String, Any> -> true}
         val callback2 = lp.getTypeCallback("test")
-        Assert.assertNotSame(callback1, callback2)
+        assertNotSame(callback1, callback2)
 
         lp.setTypeCallback("test", callback1)
         val callback3 = lp.getTypeCallback("test")
-        Assert.assertSame(callback1, callback3)
+        assertSame(callback1, callback3)
     }
 
     /*-------------LogicalPermissions::types--------------*/
@@ -121,11 +121,11 @@ class LogicalPermissionsTest {
     @Test fun testGetTypes() {
         val lp = LogicalPermissions()
         // Assert empty map
-        Assert.assertEquals(mapOf<String, (String, Map<String, Any>) -> Boolean>(), lp.types)
+        assertEquals(mapOf<String, (String, Map<String, Any>) -> Boolean>(), lp.types)
 
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.addType("test", type_callback)
-        Assert.assertEquals(mapOf("test" to type_callback), lp.types)
+        assertEquals(mapOf("test" to type_callback), lp.types)
     }
 
     @Test(expected = IllegalArgumentException::class) fun testSetTypesParamNameEmpty() {
@@ -144,22 +144,22 @@ class LogicalPermissionsTest {
         val lp = LogicalPermissions()
         val types = mapOf("test" to {_: String, _: Map<String, Any> -> true})
         lp.types = types
-        Assert.assertEquals(types, lp.types)
+        assertEquals(types, lp.types)
     }
 
     /*-------------LogicalPermissions::getBypassCallback()--------------*/
 
     @Test fun getBypassCallback() {
         val lp = LogicalPermissions()
-        Assert.assertNull(lp.bypassCallback)
+        assertNull(lp.bypassCallback)
     }
 
     @Test fun setBypassCallback() {
         val lp = LogicalPermissions()
         val bypass_callback = {_: Map<String, Any> -> true}
         lp.bypassCallback = bypass_callback
-        Assert.assertNotNull(lp.bypassCallback)
-        Assert.assertEquals(bypass_callback, lp.bypassCallback)
+        assertNotNull(lp.bypassCallback)
+        assertEquals(bypass_callback, lp.bypassCallback)
     }
 
     /*------------LogicalPermissions::getValidPermissionKeys()------------*/
@@ -167,7 +167,7 @@ class LogicalPermissionsTest {
     @Test fun testGetValidPermissionKeys() {
         val lp = LogicalPermissions()
         val keys = lp.getValidPermissionKeys()
-        Assert.assertEquals(setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE"), keys)
+        assertEquals(setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE"), keys)
 
         val types = mapOf(
             "flag" to fun(flag: String, context: Map<String, Any>): Boolean {
@@ -213,6 +213,27 @@ class LogicalPermissionsTest {
         )
         lp.types = types
         val keys2 = lp.getValidPermissionKeys()
-        Assert.assertEquals(setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE", "flag", "role", "misc"), keys2)
+        assertEquals(setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE", "flag", "role", "misc"), keys2)
+    }
+
+    /*-------------LogicalPermissions::checkAccess()--------------*/
+
+    @Test fun testCheckAccessParamPermissionsWrongPermissionType() {
+        val lp = LogicalPermissions()
+
+        val permissions = 50
+        assertFailsWith(IllegalArgumentException::class) {
+            lp.checkAccess(permissions, mapOf<String, Any>())
+        }
+
+        val intPermissions =
+        """
+        {
+            "flag": 1
+        }
+        """
+        assertFailsWith(IllegalArgumentException::class) {
+            lp.checkAccess(intPermissions, mapOf<String, Any>())
+        }
     }
 }

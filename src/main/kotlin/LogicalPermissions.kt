@@ -91,7 +91,43 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open fun checkAccess(permissions: Any, context: Map<String, Any>, allowBypass: Boolean = true): Boolean {
-        val mapPermissions = this.parsePermissions(permissions)
+        var mapPermissions = this.parsePermissions(permissions)
+
+        // Uppercase no_bypass key
+        if(mapPermissions.containsKey("no_bypass")) {
+            mapPermissions["NO_BYPASS"] = mapPermissions.getValue("no_bypass")
+            mapPermissions.remove("no_bypass")
+        }
+
+        var allowBypass = allowBypass
+
+        // Bypass access check
+        if(mapPermissions.containsKey("NO_BYPASS")) {
+            val noBypass = mapPermissions["NO_BYPASS"]
+            if(noBypass != null && allowBypass) {
+                allowBypass = this.checkAllowBypass(noBypass, context)
+            }
+            mapPermissions.remove("NO_BYPASS")
+        }
+        if(allowBypass) {
+            try {
+                if(this.checkBypassAccess(context)) {
+                    return true
+                }
+            }
+            catch(e: Exception) {
+                throw Exception("Error checking bypass access: ${e.localizedMessage}")
+            }
+        }
+
+        // Normal access check
+        if(mapPermissions.size > 0) {
+            try {
+                return this.processOR(permissions = mapPermissions, context = context)
+            } catch (e: Exception) {
+                throw Exception("Error checking access: ${e.localizedMessage}")
+            }
+        }
 
         return true
     }
@@ -130,4 +166,126 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         val stringBuilder: StringBuilder = StringBuilder(jsonPermissions)
         return parser.parse(stringBuilder) as JsonObject
     }
+
+    open protected fun checkAllowBypass(noBypass: Any, context: Map<String, Any>): Boolean {
+        if(noBypass is Boolean) {
+            return !noBypass
+        }
+        if(noBypass is String) {
+            if(noBypass.toUpperCase() != "TRUE" && noBypass.toUpperCase() != "FALSE") {
+                throw IllegalArgumentException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
+            }
+            return noBypass.toBoolean()
+        }
+        if(noBypass is JsonObject) {
+            try {
+                return !this.processOR(permissions = noBypass, context = context)
+            }
+            catch(e: Exception) {
+                throw Exception("Error checking NO_BYPASS permissions: ${e.localizedMessage}")
+            }
+        }
+
+        throw IllegalArgumentException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
+    }
+
+    open protected fun checkBypassAccess(context: Map<String, Any>): Boolean {
+        if(this.bypassCallback == null) {
+            return false
+        }
+
+        return this.bypassCallback?.invoke(context) ?: false
+    }
+
+    open protected fun dispatch(permissions: Any, context: Map<String, Any> = mapOf(), type: String = ""): Boolean {
+        var type = type
+
+        if(permissions is Boolean) {
+            if(!type.isEmpty()) {
+                throw IllegalArgumentException("You cannot put a boolean permission as a descendant to a permission type. Existing type: $type. Evaluated permissions: $permissions")
+            }
+
+            return permissions
+        }
+
+        if(permissions is String) {
+            if(permissions.toUpperCase() == "TRUE") {
+                if(!type.isEmpty()) {
+                    throw IllegalArgumentException("You cannot put a boolean permission as a descendant to a permission type. Existing type: $type. Evaluated permissions: $permissions")
+                }
+
+                return true
+            }
+            else if(permissions.toUpperCase() == "FALSE") {
+                if(!type.isEmpty()) {
+                    throw IllegalArgumentException("You cannot put a boolean permission as a descendant to a permission type. Existing type: $type. Evaluated permissions: $permissions")
+                }
+
+                return false
+            }
+
+            return this.externalAccessCheck(permissions = permissions, context = context, type = type)
+        }
+
+        if(permissions is JsonArray<*>) {
+            if(permissions.size > 0) {
+                return this.processOR(permissions = permissions, context = context, type = type)
+            }
+
+            return false
+        }
+
+        if(permissions is JsonObject) {
+            if(permissions.size == 1) {
+                val item = permissions.entries.first()
+                val key = item.key
+                val value = item.value
+                if(key.toIntOrNull() == null) {
+                    val keyUpper = key.toUpperCase()
+                    if(keyUpper == "NO_BYPASS") {
+                        throw IllegalArgumentException("The NO_BYPASS key must be placed highest in the permission hierarchy. Evaluated permissions: $permissions")
+                    }
+                    if(keyUpper == "AND") {
+                        return this.processAND(permissions = value, context = context, type = type)
+                    }
+                    if(keyUpper == "NAND") {
+                        return this.processNAND(permissions = value, context = context, type = type)
+                    }
+                    if(keyUpper == "OR") {
+                        return this.processOR(permissions = value, context = context, type = type)
+                    }
+                    if(keyUpper == "NOR") {
+                        return this.processNOR(permissions = value, context = context, type = type)
+                    }
+                    if(keyUpper == "XOR") {
+                        return this.processXOR(permissions = value, context = context, type = type)
+                    }
+                    if(keyUpper == "NOT") {
+                        return this.processNOT(permissions = value, context = context, type = type)
+                    }
+                    if(keyUpper == "TRUE" || keyUpper == "FALSE") {
+                        throw IllegalArgumentException("A Boolean permission cannot have children. Evaluated permissions: $permissions")
+                    }
+
+                    if(!type.isEmpty()) {
+                        throw IllegalArgumentException("You cannot put a permission type as a descendant to another permission type. Existing type: $type. Evaluated permissions: $permissions")
+                    }
+                    type = key
+                }
+                if(value is JsonArray<*> || value is JsonObject) {
+                    return this.processOR(permissions = value, context = context, type = type)
+                }
+
+                return this.dispatch(permissions = value, context = context, type = type)
+            }
+            if(permissions.size > 1) {
+                return this.processOR(permissions = permissions, context = context, type = type)
+            }
+
+            return false
+        }
+
+        throw IllegalArgumentException("A permission value must either be a Boolean, a String, a com.beust.klaxon.JsonArray or a com.beust.klaxon.JsonObject. Evaluated permissions: $permissions")
+    }
+
 }
