@@ -1,3 +1,4 @@
+import com.beust.klaxon.json
 import org.junit.Test
 import kotlin.test.*
 
@@ -11,27 +12,27 @@ class LogicalPermissionsTest {
 
     @Test(expected = InvalidArgumentValueException::class) fun testAddTypeParamNameEmpty() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("", callback)
     }
 
     @Test(expected = InvalidArgumentValueException::class) fun TestAddTypeParamNameIsCoreKey() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("and", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("and", callback)
     }
 
     @Test(expected = PermissionTypeAlreadyExistsException::class) fun testAddTypeParamNameExists() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("test", type_callback)
-        lp.addType("test", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", callback)
+        lp.addType("test", callback)
     }
 
     @Test fun testAddType() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("test", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", callback)
         assertTrue(lp.typeExists("test"))
     }
 
@@ -49,8 +50,8 @@ class LogicalPermissionsTest {
 
     @Test fun testRemoveType() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("test", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", callback)
         assertTrue(lp.typeExists("test"))
         lp.removeType("test")
         assertFalse(lp.typeExists("test"))
@@ -65,8 +66,8 @@ class LogicalPermissionsTest {
 
     @Test fun testTypeExists() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("test", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", callback)
         assertTrue(lp.typeExists("test"))
     }
 
@@ -94,14 +95,14 @@ class LogicalPermissionsTest {
 
     @Test(expected = InvalidArgumentValueException::class) fun testSetTypeCallbackParamNameEmpty() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.setTypeCallback("", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.setTypeCallback("", callback)
     }
 
     @Test(expected = PermissionTypeNotRegisteredException::class) fun testSetTypeCallbackUnregisteredType() {
         val lp = LogicalPermissions()
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.setTypeCallback("test", type_callback)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.setTypeCallback("test", callback)
     }
 
     @Test fun testSetTypeCallback() {
@@ -123,9 +124,9 @@ class LogicalPermissionsTest {
         // Assert empty map
         assertEquals(mapOf<String, (String, Map<String, Any>) -> Boolean>(), lp.types)
 
-        val type_callback = {_: String, _: Map<String, Any> -> true}
-        lp.addType("test", type_callback)
-        assertEquals(mapOf("test" to type_callback), lp.types)
+        val callback = {_: String, _: Map<String, Any> -> true}
+        lp.addType("test", callback)
+        assertEquals(mapOf("test" to callback), lp.types)
     }
 
     @Test(expected = InvalidArgumentValueException::class) fun testSetTypesParamNameEmpty() {
@@ -235,5 +236,29 @@ class LogicalPermissionsTest {
         assertFailsWith(InvalidArgumentValueException::class) {
             lp.checkAccess(intPermissions, mapOf<String, Any>())
         }
+
+        val strPermissions =
+        """
+            "flag": "testflag"
+        """
+        assertFailsWith(InvalidArgumentValueException::class) {
+            lp.checkAccess(strPermissions, mapOf<String, Any>())
+        }
+    }
+
+    @Test fun testCheckAccessParamPermissionsNestedTypes() {
+        val lp = LogicalPermissions()
+
+        //Directly nested
+        var permissions =
+        """
+        {
+            "flag": {
+                "flag": "testflag"
+            }
+        }
+        """
+        lp.checkAccess(permissions, mapOf<String, Any>())
+        // Jag får ett fel i LogicalPermissions::dispatch() som beror på att klassen för permissions är java.util.LinkedHashMap$Entry i stället för JsonObject. Det behöver fixas, antagligen på flera ställen. Använd debugfunktionen.
     }
 }

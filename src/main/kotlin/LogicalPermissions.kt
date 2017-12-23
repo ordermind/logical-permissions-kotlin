@@ -13,9 +13,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
                 if(this.corePermissionKeys.contains(name.toUpperCase())) {
                     throw InvalidArgumentValueException("The name for a type has the illegal value \"$name\". It cannot be one of the following values: ${this.corePermissionKeys}")
                 }
-
             }
-
             field = value
         }
 
@@ -166,7 +164,12 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
         val parser: Parser = Parser()
         val stringBuilder: StringBuilder = StringBuilder(jsonPermissions)
-        return parser.parse(stringBuilder) as JsonObject
+        try {
+            return parser.parse(stringBuilder) as JsonObject
+        }
+        catch(e: Exception) {
+            throw InvalidArgumentValueException("Error parsing json permissions: ${e.message}. Evaluated permissions: $permissions")
+        }
     }
 
     open protected fun checkAllowBypass(noBypass: Any, context: Map<String, Any>): Boolean {
