@@ -9,13 +9,13 @@ class LogicalPermissionsTest {
 
     /*-----------LogicalPermissions::addType()-------------*/
 
-    @Test(expected = IllegalArgumentException::class) fun testAddTypeParamNameEmpty() {
+    @Test(expected = InvalidArgumentValueException::class) fun testAddTypeParamNameEmpty() {
         val lp = LogicalPermissions()
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.addType("", type_callback)
     }
 
-    @Test(expected = IllegalArgumentException::class) fun TestAddTypeParamNameIsCoreKey() {
+    @Test(expected = InvalidArgumentValueException::class) fun TestAddTypeParamNameIsCoreKey() {
         val lp = LogicalPermissions()
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.addType("and", type_callback)
@@ -37,7 +37,7 @@ class LogicalPermissionsTest {
 
     /*-----------LogicalPermissions::removeType()-------------*/
 
-    @Test(expected = IllegalArgumentException::class) fun testRemoveTypeParamNameEmpty() {
+    @Test(expected = InvalidArgumentValueException::class) fun testRemoveTypeParamNameEmpty() {
         val lp = LogicalPermissions()
         lp.removeType("")
     }
@@ -58,7 +58,7 @@ class LogicalPermissionsTest {
 
     /*-------------LogicalPermissions::typeExists()--------------*/
 
-    @Test(expected = IllegalArgumentException::class) fun testTypeExistsParamNameEmpty() {
+    @Test(expected = InvalidArgumentValueException::class) fun testTypeExistsParamNameEmpty() {
         val lp = LogicalPermissions()
         lp.typeExists("")
     }
@@ -72,7 +72,7 @@ class LogicalPermissionsTest {
 
     /*-------------LogicalPermissions::getTypeCallback()--------------*/
 
-    @Test(expected = IllegalArgumentException::class) fun testGetTypeCallbackParamNameEmpty() {
+    @Test(expected = InvalidArgumentValueException::class) fun testGetTypeCallbackParamNameEmpty() {
         val lp = LogicalPermissions()
         lp.getTypeCallback("")
     }
@@ -92,7 +92,7 @@ class LogicalPermissionsTest {
 
     /*-------------LogicalPermissions::setTypeCallback()--------------*/
 
-    @Test(expected = IllegalArgumentException::class) fun testSetTypeCallbackParamNameEmpty() {
+    @Test(expected = InvalidArgumentValueException::class) fun testSetTypeCallbackParamNameEmpty() {
         val lp = LogicalPermissions()
         val type_callback = {_: String, _: Map<String, Any> -> true}
         lp.setTypeCallback("", type_callback)
@@ -128,13 +128,13 @@ class LogicalPermissionsTest {
         assertEquals(mapOf("test" to type_callback), lp.types)
     }
 
-    @Test(expected = IllegalArgumentException::class) fun testSetTypesParamNameEmpty() {
+    @Test(expected = InvalidArgumentValueException::class) fun testSetTypesParamNameEmpty() {
         val lp = LogicalPermissions()
         val types = mapOf("" to {_: String, _: Map<String, Any> -> true})
         lp.types = types
     }
 
-    @Test(expected = IllegalArgumentException::class) fun testSetTypesParamTypesNameIsCoreKey() {
+    @Test(expected = InvalidArgumentValueException::class) fun testSetTypesParamTypesNameIsCoreKey() {
         val lp = LogicalPermissions()
         val types = mapOf("and" to {_: String, _: Map<String, Any> -> true})
         lp.types = types
@@ -222,7 +222,7 @@ class LogicalPermissionsTest {
         val lp = LogicalPermissions()
 
         val permissions = 50
-        assertFailsWith(IllegalArgumentException::class) {
+        assertFailsWith(InvalidArgumentValueException::class) {
             lp.checkAccess(permissions, mapOf<String, Any>())
         }
 
@@ -232,7 +232,7 @@ class LogicalPermissionsTest {
             "flag": 1
         }
         """
-        assertFailsWith(IllegalArgumentException::class) {
+        assertFailsWith(InvalidArgumentValueException::class) {
             lp.checkAccess(intPermissions, mapOf<String, Any>())
         }
     }

@@ -1,2 +1,5 @@
-class PermissionTypeAlreadyExistsException(message: String): IllegalArgumentException(message)
-class PermissionTypeNotRegisteredException(message: String): IllegalArgumentException(message)
+open class MutableException(override var message: String): Exception(message)
+class InvalidArgumentValueException(message: String): MutableException(message)
+class PermissionTypeAlreadyExistsException(message: String): MutableException(message)
+class PermissionTypeNotRegisteredException(message: String): MutableException(message)
+class InvalidValueForLogicGateException(message: String): MutableException(message)
