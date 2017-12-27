@@ -158,7 +158,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             throw InvalidArgumentValueException("Permissions must be a Boolean, a String, a com.beust.klaxon.JsonArray or a com.beust.klaxon.JsonObject. Evaluated permissions: $permissions")
         }
 
-        if(!jsonPermissions.first().equals("{")) {
+        if(jsonPermissions.first().equals("[")) {
             jsonPermissions = "{\"OR\": $jsonPermissions}"
         }
 
@@ -180,7 +180,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             if(noBypass.toUpperCase() != "TRUE" && noBypass.toUpperCase() != "FALSE") {
                 throw InvalidArgumentValueException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
             }
-            return noBypass.toBoolean()
+            return !noBypass.toBoolean()
         }
         if(noBypass is JsonObject) {
             try {
@@ -279,6 +279,9 @@ open class LogicalPermissions: LogicalPermissionsInterface {
                     if(type.isNotEmpty()) {
                         throw InvalidArgumentValueException("You cannot put a permission type as a descendant to another permission type. Existing type: $type. Evaluated permissions: $permissions")
                     }
+                    if(!this.typeExists(key)) {
+                        throw PermissionTypeNotRegisteredException("The permission type \"$key\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
+                    }
                     type = key
                 }
                 if(value is JsonArray<*> || value is JsonObject) {
@@ -294,7 +297,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             return false
         }
 
-        throw InvalidArgumentValueException("A permission value must either be a Boolean, a String, a com.beust.klaxon.JsonArray or a com.beust.klaxon.JsonObject. Evaluated permissions: $permissions")
+        throw InvalidArgumentValueException("A permission value must either be a Boolean, a String, a com.beust.klaxon.JsonArray or a com.beust.klaxon.JsonObject. Class is ${permissions::class}. Evaluated permissions: $permissions")
     }
 
     open protected fun processAND(permissions: Any, context: Map<String, Any>, type: String): Boolean {
@@ -324,7 +327,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
             var access= true
             for(item in permissions) {
-                val subPermissions = json {item}
+                val subPermissions = json {obj(item.key to item.value)}
                 access = access && this.dispatch(permissions = subPermissions, context = context, type = type)
                 if(!access) {
                     break
@@ -382,7 +385,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             
             var access = false
             for(item in permissions) {
-                val subPermissions = json {item}
+                val subPermissions = json {obj(item.key to item.value)}
                 access = access || this.dispatch(permissions = subPermissions, context = context, type = type)
                 if(access) {
                     break
@@ -453,7 +456,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             var countTrue = 0
             var countFalse = 0
             for(item in permissions) {
-                val subPermissions = json {item}
+                val subPermissions = json {obj(item.key to item.value)}
                 val result = this.dispatch(permissions = subPermissions, context = context, type = type)
                 if(result) {
                     countTrue++
@@ -494,7 +497,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
     open protected fun externalAccessCheck(permission: String, context: Map<String, Any>, type: String): Boolean {
         if(!this.typeExists(type)) {
-            throw PermissionTypeNotRegisteredException("The permission type \"type\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
+            throw PermissionTypeNotRegisteredException("The permission type \"$type\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
         }
 
         val callback = this.getTypeCallback(type)
