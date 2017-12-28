@@ -142,12 +142,13 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             jsonPermissions = permissions.toJsonString()
         }
         else if(permissions is String) {
-            if(permissions.length <= 5 && (permissions.toUpperCase() == "TRUE" || permissions.toUpperCase() == "FALSE")) {
+            val trimmedPermissions = permissions.trim()
+            if(trimmedPermissions.length <= 5 && (trimmedPermissions.toUpperCase() == "TRUE" || trimmedPermissions.toUpperCase() == "FALSE")) {
                 return json {
-                    obj("OR" to array(permissions))
+                    obj("OR" to array(trimmedPermissions))
                 }
             }
-            jsonPermissions = permissions
+            jsonPermissions = trimmedPermissions
         }
         else if(permissions is Boolean) {
             return json {
@@ -158,10 +159,9 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             throw InvalidArgumentValueException("Permissions must be a Boolean, a String, a com.beust.klaxon.JsonArray or a com.beust.klaxon.JsonObject. Evaluated permissions: $permissions")
         }
 
-        if(jsonPermissions.first().equals("[")) {
+        if(jsonPermissions.first().equals('[')) {
             jsonPermissions = "{\"OR\": $jsonPermissions}"
         }
-
         val parser: Parser = Parser()
         val stringBuilder: StringBuilder = StringBuilder(jsonPermissions)
         try {
