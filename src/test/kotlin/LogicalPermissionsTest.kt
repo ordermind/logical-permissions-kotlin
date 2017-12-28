@@ -3,11 +3,6 @@ import org.junit.Test
 import kotlin.test.*
 
 class LogicalPermissionsTest {
-    @Test fun testCreation() {
-        val lp = LogicalPermissions()
-        assertTrue(lp is LogicalPermissionsInterface)
-    }
-
     /*-----------LogicalPermissions::addType()-------------*/
 
     @Test(expected = InvalidArgumentValueException::class) fun testAddTypeParamNameEmpty() {
