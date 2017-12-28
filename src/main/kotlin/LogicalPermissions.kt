@@ -133,7 +133,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open protected fun parsePermissions(permissions: Any): JsonObject {
-        var jsonPermissions = ""
+        var jsonPermissions: String
 
         if(permissions is JsonObject) {
             jsonPermissions = permissions.toJsonString()
