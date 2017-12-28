@@ -15,6 +15,13 @@ version '0.10.0'
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
+test {
+    //we want display the following test events
+    testLogging {
+        events "PASSED", "FAILED"
+    }
+}
+
 sourceCompatibility = 1.8
 
 repositories {
