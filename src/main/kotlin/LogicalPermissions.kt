@@ -142,7 +142,8 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             jsonPermissions = permissions.toJsonString()
         }
         else if(permissions is String) {
-            val trimmedPermissions = permissions.trim()
+//            val trimmedPermissions = permissions.trim()
+            val trimmedPermissions = permissions
             if(trimmedPermissions.length <= 5 && (trimmedPermissions.toUpperCase() == "TRUE" || trimmedPermissions.toUpperCase() == "FALSE")) {
                 return json {
                     obj("OR" to array(trimmedPermissions))
