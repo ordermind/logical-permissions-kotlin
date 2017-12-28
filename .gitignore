@@ -5,3 +5,4 @@
 !/.gitignore
 !/build.gradle
 !/settings.gradle
+!/.travis.yml
