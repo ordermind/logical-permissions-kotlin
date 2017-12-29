@@ -107,19 +107,22 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open protected fun createPermissionsObject(jsonPermissions: String): JsonObject {
-        var jsonPermissions = jsonPermissions
+        fun buildObject(jsonPermissions: String): JsonObject {
+            val parser = Parser()
+            val stringBuilder = StringBuilder(jsonPermissions)
+            try {
+                return parser.parse(stringBuilder) as JsonObject
+            }
+            catch(e: Exception) {
+                throw InvalidArgumentValueException("Error creating permissions object from json: ${e.message}. Evaluated permissions: $jsonPermissions")
+            }
+        }
 
         if(jsonPermissions.first().equals('[')) {
-            jsonPermissions = "{\"OR\": $jsonPermissions}"
+            return buildObject("{\"OR\": $jsonPermissions}")
         }
-        val parser = Parser()
-        val stringBuilder = StringBuilder(jsonPermissions)
-        try {
-            return parser.parse(stringBuilder) as JsonObject
-        }
-        catch(e: Exception) {
-            throw InvalidArgumentValueException("Error creating permissions object from json: ${e.message}. Evaluated permissions: $jsonPermissions")
-        }
+
+        return buildObject(jsonPermissions)
     }
 
     open protected fun checkAccessParsed(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
