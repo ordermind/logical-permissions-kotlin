@@ -19,7 +19,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
     open var bypassCallback: ((Map<String, Any>) -> Boolean)? = null
 
-    open protected val corePermissionKeys: Set<String> = setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE")
+    open protected val corePermissionKeys = setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE")
 
     open fun addType(name: String, callback: (String, Map<String, Any>) -> Boolean) {
         if(name.isEmpty()) {
@@ -204,7 +204,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         return this.bypassCallback?.invoke(context) ?: false
     }
 
-    open protected fun dispatch(permissions: Any, context: Map<String, Any>, type: String = ""): Boolean {
+    open protected fun dispatch(permissions: Any, context: Map<String, Any>, type: String): Boolean {
         if(permissions is Boolean) {
             if(type.isNotEmpty()) {
                 throw InvalidArgumentValueException("You cannot put a boolean permission as a descendant to a permission type. Existing type: $type. Evaluated permissions: $permissions")
