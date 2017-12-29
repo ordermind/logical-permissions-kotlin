@@ -2,6 +2,9 @@
 !/src
 !/src/*
 !/src/**/*
+!/docs
+!/docs/*
+!/docs/**/*
 !/.gitignore
 !/build.gradle
 !/settings.gradle

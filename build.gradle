@@ -49,5 +49,5 @@ dependencies {
 
 dokka {
     outputFormat = 'markdown'
-    outputDirectory = "$buildDir/dokka"
+    outputDirectory = "docs"
 }
