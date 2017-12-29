@@ -3,8 +3,8 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.beust.klaxon.json
 
-open class LogicalPermissions: LogicalPermissionsInterface {
-    open var types: Map<String, (String, Map<String, Any>) -> Boolean> = mapOf()
+open class LogicalPermissions : LogicalPermissionsInterface {
+    override var types: Map<String, (String, Map<String, Any>) -> Boolean> = mapOf()
         set(value) {
             for((name, _) in value) {
                 if(name.isEmpty()) {
@@ -17,11 +17,11 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             field = value
         }
 
-    open var bypassCallback: ((Map<String, Any>) -> Boolean)? = null
+    override var bypassCallback: ((Map<String, Any>) -> Boolean)? = null
 
     open protected val corePermissionKeys = setOf("NO_BYPASS", "AND", "NAND", "OR", "NOR", "XOR", "NOT", "TRUE", "FALSE")
 
-    open fun addType(name: String, callback: (String, Map<String, Any>) -> Boolean) {
+    override fun addType(name: String, callback: (String, Map<String, Any>) -> Boolean) {
         if(name.isEmpty()) {
             throw InvalidArgumentValueException("The \"name\" parameter cannot be empty.")
         }
@@ -37,7 +37,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         this.types = types.toMap()
     }
 
-    open fun removeType(name: String) {
+    override fun removeType(name: String) {
         if(name.isEmpty()) {
             throw InvalidArgumentValueException("The \"name\" parameter cannot be empty.")
         }
@@ -50,7 +50,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         this.types = types.toMap()
     }
 
-    open fun typeExists(name: String): Boolean {
+    override fun typeExists(name: String): Boolean {
         if(name.isEmpty()) {
             throw InvalidArgumentValueException("The \"name\" parameter cannot be empty.")
         }
@@ -58,7 +58,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         return this.types.containsKey(name)
     }
 
-    open fun getTypeCallback(name: String): (String, Map<String, Any>) -> Boolean {
+    override fun getTypeCallback(name: String): (String, Map<String, Any>) -> Boolean {
         if(name.isEmpty()) {
             throw InvalidArgumentValueException("The \"name\" parameter cannot be empty.")
         }
@@ -71,7 +71,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         return callback
     }
 
-    open fun setTypeCallback(name: String, callback: (String, Map<String, Any>) -> Boolean) {
+    override fun setTypeCallback(name: String, callback: (String, Map<String, Any>) -> Boolean) {
         if(name.isEmpty()) {
             throw InvalidArgumentValueException("The \"name\" parameter cannot be empty.")
         }
@@ -84,17 +84,17 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         this.types = types.toMap()
     }
 
-    open fun getValidPermissionKeys(): Set<String> {
+    override fun getValidPermissionKeys(): Set<String> {
         return this.corePermissionKeys.union(this.types.keys)
     }
     
-    open fun checkAccess(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+    override fun checkAccess(permissions: JsonObject, context: Map<String, Any>, allowBypass: Boolean): Boolean {
         return this.checkAccessParsed(permissions = this.createPermissionsObject(permissions.toJsonString()), context = context, allowBypass = allowBypass)
     }
-    open fun checkAccess(permissions: JsonArray<Any?>, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+    override fun checkAccess(permissions: JsonArray<Any?>, context: Map<String, Any>, allowBypass: Boolean): Boolean {
         return this.checkAccessParsed(permissions = this.createPermissionsObject(permissions.toJsonString()), context = context, allowBypass = allowBypass)
     }
-    open fun checkAccess(permissions: String, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+    override fun checkAccess(permissions: String, context: Map<String, Any>, allowBypass: Boolean): Boolean {
         val trimmedPermissions = permissions.trim()
         if(trimmedPermissions.length <= 5 && (trimmedPermissions.toUpperCase() == "TRUE" || trimmedPermissions.toUpperCase() == "FALSE")) {
             return this.checkAccessParsed(permissions = json {obj("OR" to array(trimmedPermissions))}, context = context, allowBypass = allowBypass)
@@ -102,7 +102,7 @@ open class LogicalPermissions: LogicalPermissionsInterface {
 
         return this.checkAccessParsed(permissions = this.createPermissionsObject(trimmedPermissions), context = context, allowBypass = allowBypass)
     }
-    open fun checkAccess(permissions: Boolean, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+    override fun checkAccess(permissions: Boolean, context: Map<String, Any>, allowBypass: Boolean): Boolean {
         return this.checkAccessParsed(permissions = json {obj("OR" to array(permissions))}, context = context, allowBypass = allowBypass)
     }
 
