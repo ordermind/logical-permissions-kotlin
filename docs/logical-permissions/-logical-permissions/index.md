@@ -23,7 +23,7 @@
 | Name | Summary |
 |---|---|
 | [addType](add-type.md) | `open fun addType(name: String, callback: (String, Map<String, Any>) -> Boolean): Unit`<br>Adds a permission type. |
-| [checkAccess](check-access.md) | `open fun checkAccess(permissions: JsonObject, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>Checks access for a permission tree.`open fun checkAccess(permissions: JsonArray<Any?>, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>`open fun checkAccess(permissions: String, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>`open fun checkAccess(permissions: Boolean, context: Map<String, Any>, allowBypass: Boolean): Boolean` |
+| [checkAccess](check-access.md) | `open fun checkAccess(permissions: JsonObject, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>`open fun checkAccess(permissions: JsonArray<Any?>, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>`open fun checkAccess(permissions: String, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>`open fun checkAccess(permissions: Boolean, context: Map<String, Any>, allowBypass: Boolean): Boolean`<br>Checks access for a permission tree. |
 | [checkAccessParsed](check-access-parsed.md) | `open fun checkAccessParsed(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean): Boolean` |
 | [checkAllowBypass](check-allow-bypass.md) | `open fun checkAllowBypass(permissions: JsonObject, context: Map<String, Any>, allowBypass: Boolean): Boolean` |
 | [checkBypassAccess](check-bypass-access.md) | `open fun checkBypassAccess(context: Map<String, Any>): Boolean` |
