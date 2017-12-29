@@ -218,11 +218,6 @@ class LogicalPermissionsTest {
         val lp = LogicalPermissions()
         lp.addType("flag", {_: String, _: Map<String, Any> -> true})
 
-        val permissions = 50
-        assertFailsWith(InvalidArgumentValueException::class) {
-            lp.checkAccess(permissions, mapOf<String, Any>())
-        }
-
         val intPermissions =
         """
         {
@@ -803,7 +798,7 @@ class LogicalPermissionsTest {
         )
         lp.types = types
 
-        val runTruthTable = fun(permissions: Any) {
+        val runTruthTable = fun(permissions: String) {
             var user = mutableMapOf<String, Any>("id" to 1)
 
             //AND truth table
@@ -968,7 +963,7 @@ class LogicalPermissionsTest {
         )
         lp.types = types
 
-        val runTruthTable = fun(permissions: Any) {
+        val runTruthTable = fun(permissions: String) {
             var user = mutableMapOf<String, Any>("id" to 1)
 
             //NAND truth table
@@ -1133,7 +1128,7 @@ class LogicalPermissionsTest {
         )
         lp.types = types
 
-        val runTruthTable = fun(permissions: Any) {
+        val runTruthTable = fun(permissions: String) {
             var user = mutableMapOf<String, Any>("id" to 1)
 
             //OR truth table
@@ -1298,7 +1293,7 @@ class LogicalPermissionsTest {
         )
         lp.types = types
 
-        val runTruthTable = fun(permissions: Any) {
+        val runTruthTable = fun(permissions: String) {
             var user = mutableMapOf<String, Any>("id" to 1)
 
             //NOR truth table
@@ -1463,7 +1458,7 @@ class LogicalPermissionsTest {
         )
         lp.types = types
 
-        val runTruthTable = fun(permissions: Any) {
+        val runTruthTable = fun(permissions: String) {
             var user = mutableMapOf<String, Any>("id" to 1)
 
             //XOR truth table

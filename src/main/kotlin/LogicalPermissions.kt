@@ -87,42 +87,75 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     open fun getValidPermissionKeys(): Set<String> {
         return this.corePermissionKeys.union(this.types.keys)
     }
+    
+    open fun checkAccess(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+        return this.checkAccessParsed(permissions = this.createPermissionsObject(permissions.toJsonString()), context = context, allowBypass = allowBypass)
+    }
+    open fun checkAccess(permissions: JsonArray<Any?>, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+        return this.checkAccessParsed(permissions = this.createPermissionsObject(permissions.toJsonString()), context = context, allowBypass = allowBypass)
+    }
+    open fun checkAccess(permissions: String, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+        val trimmedPermissions = permissions.trim()
+        if(trimmedPermissions.length <= 5 && (trimmedPermissions.toUpperCase() == "TRUE" || trimmedPermissions.toUpperCase() == "FALSE")) {
+            return this.checkAccessParsed(permissions = json {obj("OR" to array(trimmedPermissions))}, context = context, allowBypass = allowBypass)
+        }
 
-    open fun checkAccess(permissions: Any, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
-        var mapPermissions = this.parsePermissions(permissions)
+        return this.checkAccessParsed(permissions = this.createPermissionsObject(trimmedPermissions), context = context, allowBypass = allowBypass)
+    }
+    open fun checkAccess(permissions: Boolean, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+        return this.checkAccessParsed(permissions = json {obj("OR" to array(permissions))}, context = context, allowBypass = allowBypass)
+    }
+
+    open protected fun createPermissionsObject(jsonPermissions: String): JsonObject {
+        var jsonPermissions = jsonPermissions
+
+        if(jsonPermissions.first().equals('[')) {
+            jsonPermissions = "{\"OR\": $jsonPermissions}"
+        }
+        val parser = Parser()
+        val stringBuilder = StringBuilder(jsonPermissions)
+        try {
+            return parser.parse(stringBuilder) as JsonObject
+        }
+        catch(e: Exception) {
+            throw InvalidArgumentValueException("Error creating permissions object from json: ${e.message}. Evaluated permissions: $jsonPermissions")
+        }
+    }
+
+    open protected fun checkAccessParsed(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
+        var permissions = permissions
 
         // Uppercase no_bypass key
-        if(mapPermissions.containsKey("no_bypass")) {
-            mapPermissions["NO_BYPASS"] = mapPermissions.getValue("no_bypass")
-            mapPermissions.remove("no_bypass")
+        if (permissions.containsKey("no_bypass")) {
+            permissions["NO_BYPASS"] = permissions.getValue("no_bypass")
+            permissions.remove("no_bypass")
         }
 
         var allowBypass = allowBypass
 
         // Bypass access check
-        if(mapPermissions.containsKey("NO_BYPASS")) {
-            val noBypass = mapPermissions["NO_BYPASS"]
-            if(noBypass != null && allowBypass) {
+        if (permissions.containsKey("NO_BYPASS")) {
+            val noBypass = permissions["NO_BYPASS"]
+            if (noBypass != null && allowBypass) {
                 allowBypass = this.checkAllowBypass(noBypass, context)
             }
-            mapPermissions.remove("NO_BYPASS")
+            permissions.remove("NO_BYPASS")
         }
-        if(allowBypass) {
+        if (allowBypass) {
             try {
-                if(this.checkBypassAccess(context)) {
+                if (this.checkBypassAccess(context)) {
                     return true
                 }
-            }
-            catch(e: MutableException) {
+            } catch (e: MutableException) {
                 e.message = "Error checking bypass access: ${e.message}"
                 throw e
             }
         }
 
         // Normal access check
-        if(mapPermissions.size > 0) {
+        if (permissions.size > 0) {
             try {
-                return this.processOR(permissions = mapPermissions, context = context, type = "")
+                return this.processOR(permissions = permissions, context = context, type = "")
             } catch (e: MutableException) {
                 e.message = "Error checking access: ${e.message}"
                 throw e
@@ -130,46 +163,6 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         }
 
         return true
-    }
-
-    open protected fun parsePermissions(permissions: Any): JsonObject {
-        var jsonPermissions: String
-
-        if(permissions is JsonObject) {
-            jsonPermissions = permissions.toJsonString()
-        }
-        else if(permissions is JsonArray<*>) {
-            jsonPermissions = permissions.toJsonString()
-        }
-        else if(permissions is String) {
-            val trimmedPermissions = permissions.trim()
-            if(trimmedPermissions.length <= 5 && (trimmedPermissions.toUpperCase() == "TRUE" || trimmedPermissions.toUpperCase() == "FALSE")) {
-                return json {
-                    obj("OR" to array(trimmedPermissions))
-                }
-            }
-            jsonPermissions = trimmedPermissions
-        }
-        else if(permissions is Boolean) {
-            return json {
-                obj("OR" to array(permissions))
-            }
-        }
-        else {
-            throw InvalidArgumentValueException("Permissions must be a Boolean, a String, a com.beust.klaxon.JsonArray or a com.beust.klaxon.JsonObject. Evaluated permissions: $permissions")
-        }
-
-        if(jsonPermissions.first().equals('[')) {
-            jsonPermissions = "{\"OR\": $jsonPermissions}"
-        }
-        val parser: Parser = Parser()
-        val stringBuilder: StringBuilder = StringBuilder(jsonPermissions)
-        try {
-            return parser.parse(stringBuilder) as JsonObject
-        }
-        catch(e: Exception) {
-            throw InvalidArgumentValueException("Error parsing json permissions: ${e.message}. Evaluated permissions: $permissions")
-        }
     }
 
     open protected fun checkAllowBypass(noBypass: Any, context: Map<String, Any>): Boolean {
