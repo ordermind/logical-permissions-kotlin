@@ -126,8 +126,6 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open protected fun checkAccessParsed(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
-        var permissions = permissions
-
         // Uppercase no_bypass key
         if (permissions.containsKey("no_bypass")) {
             permissions["NO_BYPASS"] = permissions.getValue("no_bypass")
