@@ -205,8 +205,6 @@ open class LogicalPermissions: LogicalPermissionsInterface {
     }
 
     open protected fun dispatch(permissions: Any, context: Map<String, Any>, type: String = ""): Boolean {
-        var type = type
-
         if(permissions is Boolean) {
             if(type.isNotEmpty()) {
                 throw InvalidArgumentValueException("You cannot put a boolean permission as a descendant to a permission type. Existing type: $type. Evaluated permissions: $permissions")
@@ -243,6 +241,9 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         }
 
         if(permissions is JsonObject) {
+            if(permissions.size > 1) {
+                return this.processOR(permissions = permissions, context = context, type = type)
+            }
             if(permissions.size == 1) {
                 val item = permissions.entries.first()
                 val key = item.key
@@ -250,49 +251,52 @@ open class LogicalPermissions: LogicalPermissionsInterface {
                 if(value == null) {
                     return false
                 }
-                if(key.toIntOrNull() == null) {
-                    val keyUpper = key.toUpperCase()
-                    if(keyUpper == "NO_BYPASS") {
-                        throw InvalidArgumentValueException("The NO_BYPASS key must be placed highest in the permission hierarchy. Evaluated permissions: $permissions")
-                    }
-                    if(keyUpper == "AND") {
-                        return this.processAND(permissions = value, context = context, type = type)
-                    }
-                    if(keyUpper == "NAND") {
-                        return this.processNAND(permissions = value, context = context, type = type)
-                    }
-                    if(keyUpper == "OR") {
+                if(key.toIntOrNull() != null) {
+                    if(value is JsonArray<*> || value is JsonObject) {
                         return this.processOR(permissions = value, context = context, type = type)
                     }
-                    if(keyUpper == "NOR") {
-                        return this.processNOR(permissions = value, context = context, type = type)
-                    }
-                    if(keyUpper == "XOR") {
-                        return this.processXOR(permissions = value, context = context, type = type)
-                    }
-                    if(keyUpper == "NOT") {
-                        return this.processNOT(permissions = value, context = context, type = type)
-                    }
-                    if(keyUpper == "TRUE" || keyUpper == "FALSE") {
-                        throw InvalidArgumentValueException("A Boolean permission cannot have children. Evaluated permissions: $permissions")
-                    }
 
-                    if(type.isNotEmpty()) {
-                        throw InvalidArgumentValueException("You cannot put a permission type as a descendant to another permission type. Existing type: $type. Evaluated permissions: $permissions")
-                    }
-                    if(!this.typeExists(key)) {
-                        throw PermissionTypeNotRegisteredException("The permission type \"$key\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
-                    }
-                    type = key
+                    return this.dispatch(permissions = value, context = context, type = type)
                 }
-                if(value is JsonArray<*> || value is JsonObject) {
+
+                val keyUpper = key.toUpperCase()
+                if(keyUpper == "NO_BYPASS") {
+                    throw InvalidArgumentValueException("The NO_BYPASS key must be placed highest in the permission hierarchy. Evaluated permissions: $permissions")
+                }
+                if(keyUpper == "AND") {
+                    return this.processAND(permissions = value, context = context, type = type)
+                }
+                if(keyUpper == "NAND") {
+                    return this.processNAND(permissions = value, context = context, type = type)
+                }
+                if(keyUpper == "OR") {
                     return this.processOR(permissions = value, context = context, type = type)
                 }
+                if(keyUpper == "NOR") {
+                    return this.processNOR(permissions = value, context = context, type = type)
+                }
+                if(keyUpper == "XOR") {
+                    return this.processXOR(permissions = value, context = context, type = type)
+                }
+                if(keyUpper == "NOT") {
+                    return this.processNOT(permissions = value, context = context, type = type)
+                }
+                if(keyUpper == "TRUE" || keyUpper == "FALSE") {
+                    throw InvalidArgumentValueException("A Boolean permission cannot have children. Evaluated permissions: $permissions")
+                }
 
-                return this.dispatch(permissions = value, context = context, type = type)
-            }
-            if(permissions.size > 1) {
-                return this.processOR(permissions = permissions, context = context, type = type)
+                if(type.isNotEmpty()) {
+                    throw InvalidArgumentValueException("You cannot put a permission type as a descendant to another permission type. Existing type: $type. Evaluated permissions: $permissions")
+                }
+                if(!this.typeExists(key)) {
+                    throw PermissionTypeNotRegisteredException("The permission type \"$key\" has not been registered. Please use LogicalPermissions::addType() or set the value for LogicalPermission::types to register permission types.")
+                }
+
+                if(value is JsonArray<*> || value is JsonObject) {
+                    return this.processOR(permissions = value, context = context, type = key)
+                }
+
+                return this.dispatch(permissions = value, context = context, type = key)
             }
 
             return false
