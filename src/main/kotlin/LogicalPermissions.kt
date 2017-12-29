@@ -111,7 +111,15 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             val parser = Parser()
             val stringBuilder = StringBuilder(jsonPermissions)
             try {
-                return parser.parse(stringBuilder) as JsonObject
+                val permissions = parser.parse(stringBuilder) as JsonObject
+
+                // Uppercase no_bypass key
+                if (permissions.containsKey("no_bypass")) {
+                    permissions["NO_BYPASS"] = permissions.getValue("no_bypass")
+                    permissions.remove("no_bypass")
+                }
+
+                return permissions
             }
             catch(e: Exception) {
                 throw InvalidArgumentValueException("Error creating permissions object from json: ${e.message}. Evaluated permissions: $jsonPermissions")
@@ -125,24 +133,9 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         return buildObject(jsonPermissions)
     }
 
-    open protected fun checkAccessParsed(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean = true): Boolean {
-        // Uppercase no_bypass key
-        if (permissions.containsKey("no_bypass")) {
-            permissions["NO_BYPASS"] = permissions.getValue("no_bypass")
-            permissions.remove("no_bypass")
-        }
-
-        var allowBypass = allowBypass
-
-        // Bypass access check
-        if (permissions.containsKey("NO_BYPASS")) {
-            val noBypass = permissions["NO_BYPASS"]
-            if (noBypass != null && allowBypass) {
-                allowBypass = this.checkAllowBypass(noBypass, context)
-            }
-            permissions.remove("NO_BYPASS")
-        }
-        if (allowBypass) {
+    open protected fun checkAccessParsed(permissions: JsonObject, context: Map<String, Any> = mapOf(), allowBypass: Boolean): Boolean {
+        // Check bypass access
+        if (this.checkAllowBypass(permissions = permissions, context = context, allowBypass = allowBypass)) {
             try {
                 if (this.checkBypassAccess(context)) {
                     return true
@@ -153,7 +146,10 @@ open class LogicalPermissions: LogicalPermissionsInterface {
             }
         }
 
-        // Normal access check
+        // The NO_BYPASS key is no longer used now and needs to be removed
+        permissions.remove("NO_BYPASS")
+
+        // Check regular access
         if (permissions.size > 0) {
             try {
                 return this.processOR(permissions = permissions, context = context, type = "")
@@ -166,27 +162,38 @@ open class LogicalPermissions: LogicalPermissionsInterface {
         return true
     }
 
-    open protected fun checkAllowBypass(noBypass: Any, context: Map<String, Any>): Boolean {
-        if(noBypass is Boolean) {
-            return !noBypass
-        }
-        if(noBypass is String) {
-            if(noBypass.toUpperCase() != "TRUE" && noBypass.toUpperCase() != "FALSE") {
-                throw InvalidArgumentValueException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
+    open protected fun checkAllowBypass(permissions: JsonObject, context: Map<String, Any>, allowBypass: Boolean): Boolean {
+        fun checkNoBypass(noBypass: Any, context: Map<String, Any>): Boolean {
+            if(noBypass is Boolean) {
+                return noBypass
             }
-            return !noBypass.toBoolean()
-        }
-        if(noBypass is JsonObject) {
-            try {
-                return !this.processOR(permissions = noBypass, context = context, type = "")
+            if(noBypass is String) {
+                if(noBypass.toUpperCase() != "TRUE" && noBypass.toUpperCase() != "FALSE") {
+                    throw InvalidArgumentValueException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
+                }
+                return noBypass.toBoolean()
             }
-            catch(e: MutableException) {
-                e.message = "Error checking NO_BYPASS permissions: ${e.message}"
-                throw e
+            if(noBypass is JsonObject) {
+                try {
+                    return this.processOR(permissions = noBypass, context = context, type = "")
+                }
+                catch(e: MutableException) {
+                    e.message = "Error checking NO_BYPASS permissions: ${e.message}"
+                    throw e
+                }
+            }
+
+            throw InvalidArgumentValueException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
+        }
+
+        if (permissions.containsKey("NO_BYPASS")) {
+            val noBypass = permissions["NO_BYPASS"]
+            if (noBypass != null && allowBypass) {
+                return !checkNoBypass(noBypass, context)
             }
         }
 
-        throw InvalidArgumentValueException("The NO_BYPASS value must be a Boolean, a boolean string or a com.beust.klaxon.JsonObject. Current value: $noBypass")
+        return allowBypass
     }
 
     open protected fun checkBypassAccess(context: Map<String, Any>): Boolean {
