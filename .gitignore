@@ -9,3 +9,4 @@
 !/build.gradle
 !/settings.gradle
 !/.travis.yml
+!/README.md

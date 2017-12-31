@@ -2183,4 +2183,41 @@ class LogicalPermissionsTest {
         user["roles"] = setOf("admin", "writer")
         assertTrue(lp.checkAccess(permissions, mapOf("user" to user)))
     }
+
+    @Test fun readmeSampleCode() {
+        val lp = LogicalPermissions()
+
+        // Add callback function for permission type "role"
+        val roleCallback = fun(role: String, context: Map<String, Any>): Boolean {
+            if (!context.containsKey("user")) return false
+
+            val user = context["user"]
+            if (user == null) return false
+            if (user !is Map<*, *>) return false
+
+            val roles = user["roles"]
+            if (roles == null) return false
+            if (roles !is Set<*>) return false
+
+            return roles.contains(role)
+        }
+
+        // Add permission type "role"
+        lp.addType("role", roleCallback)
+
+        // Create sample user
+        val user = mapOf("id" to 1, "roles" to setOf("writer"))
+
+        // Create sample permissions
+        val permissions =
+        """
+        {
+            "role": ["editor", "writer"]
+        }
+        """
+
+        // Check access
+        val access = lp.checkAccess(permissions, mapOf("user" to user))
+        assertTrue(access)
+    }
 }
