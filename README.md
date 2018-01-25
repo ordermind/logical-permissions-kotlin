@@ -386,4 +386,4 @@ val permissions =
 ```
 
 ## API Documentation
-Please refer to [`LogicalPermissions::AddType()`](/docs/logical-permissions/-logical-permissions-interface/index.md) for api documentation.
+Please refer to [`LogicalPermissionsInterface`](/docs/logical-permissions/-logical-permissions-interface/index.md) for api documentation.
